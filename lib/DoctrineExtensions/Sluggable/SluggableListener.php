@@ -3,10 +3,21 @@
 namespace DoctrineExtensions\Sluggable;
 
 use Doctrine\ORM\Event\LifecycleEventArgs,
-    Doctrine\ORM\EntityManager;
+    Doctrine\Common\EventManager,
+    Doctrine\ORM\Events;
 
 class SluggableListener
 {
+    /**
+     * Constructor
+     *
+     * @param EventManager $evm Event Manager
+     */
+    public function __construct(EventManager $evm)
+    {
+        $evm->addEventListener(Events::prePersist, $this);
+    }
+
     /**
      * prePersist
      * 

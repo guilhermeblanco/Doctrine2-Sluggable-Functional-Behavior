@@ -2,7 +2,8 @@
 
 namespace DoctrineExtensions\Sluggable;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\ClassMetadata,
+    Doctrine\ORM\EntityManager;
 
 class SlugGenerator
 {
@@ -36,13 +37,11 @@ class SlugGenerator
         $slugCandidate = $this->_getSlugCandidate($class, $entity);
 
         // Inspect storage for an already existent slug
-        $qb = $this->_em->createQueryBuilder()
-            ->select($qb->expr()->count('c.' . $entity->getSlugFieldName()))
-            ->from($class->name, 'c')
-            ->where($qb->expr()->like(
-                'c.' . $entity->getSlugFieldName(),
-                $qb->expr()->quote($slugCandidate . '%')
-            ));
+        $qb = $this->_em->createQueryBuilder();
+        $qb->select('COUNT(c.' . $entity->getSlugFieldName() . ')')
+           ->from($class->name, 'c')
+           ->where('c.' . $entity->getSlugFieldName() . ' LIKE ?1');
+        $qb->setParameter(1, $slugCandidate . '%');
         $count = $qb->getQuery()->getSingleScalarResult();
 
         // If slug exists, append the counter (foo-2, for example)
@@ -51,7 +50,7 @@ class SlugGenerator
         }
 
         // Assign slug value into entity
-        $class->setFieldValue($entity, $entity->getSlugFieldName(), $value);
+        $class->setFieldValue($entity, $entity->getSlugFieldName(), $slugCandidate);
     }
 
     /**
@@ -63,7 +62,7 @@ class SlugGenerator
      */
     private function _getSlugCandidate(ClassMetadata $class, Sluggable $entity)
     {
-        $generatorFields = $this->_entity->getSlugGeneratorFields();
+        $generatorFields = $entity->getSlugGeneratorFields();
         $slugCandidate = '';
 
         if ($generatorFields) {
@@ -71,7 +70,7 @@ class SlugGenerator
 
             // Loop through all fields defined
             foreach ($generatorFields as $fieldName) {
-                $slugCandidate[] = $class->getReflectionProperty($fieldName)->getValue($this->_entity);
+                $slugCandidate[] = $class->getReflectionProperty($fieldName)->getValue($entity);
             }
 
             $slugCandidate = implode(' ', $slugCandidate);
@@ -80,7 +79,7 @@ class SlugGenerator
             // Good reference (pt_BR): http://manoellemos.com/2009/11/23/zapt-in-entendendo-e-brincando-com-os-encurtadores-de-url/
         }
 
-        $normalizer = new SlugNormalizer(implode(' ', $slugCandidate));
+        $normalizer = new SlugNormalizer($slugCandidate);
 
         return $normalizer->normalize();
     }
