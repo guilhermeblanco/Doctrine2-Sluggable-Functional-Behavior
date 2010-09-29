@@ -2,20 +2,24 @@
 
 namespace DoctrineExtensions\Sluggable;
 
-use Doctrine\ORM\Event\LifecycleEventArgs,
-    Doctrine\Common\EventManager,
-    Doctrine\ORM\Events;
+use Doctrine\Common\EventSubscriber,
+    Doctrine\ORM\Event\LifecycleEventArgs;
 
-class SluggableListener
+class SluggableSubscriber implements EventSubscriber
 {
     /**
-     * Constructor
-     *
-     * @param EventManager $evm Event Manager
+     * Constant which points to prePersist event
      */
-    public function __construct(EventManager $evm)
+    const prePersist = 'prePersist';
+
+    /**
+     * Return the events to subscribe for monitoring
+     *
+     * @return array
+     */
+    public function getSubscribedEvents()
     {
-        $evm->addEventListener(Events::prePersist, $this);
+        return array(self::prePersist);
     }
 
     /**
