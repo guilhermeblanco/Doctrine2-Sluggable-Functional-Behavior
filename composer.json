@@ -2,6 +2,7 @@
     "name": "guilhermeblanco/sluggable",
     "description": "Sluggable Functional Behavior to support slugs inside Doctrine 2.",
     "keywords": [ "slugalizer", "slug", "url friendly", "slug-generator", "Doctrine", "ORM" ],
+    "license": "MIT",
     "authors": [
         {
             "name": "Guilherme Blanco",
